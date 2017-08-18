@@ -1,4 +1,15 @@
-# CREDIT: Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/
+''' (Start of CREDIT:)
+
+Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/
+The project has been marked under Creative Commons Attribution License:
+https://creativecommons.org/licenses/by/4.0/
+
+Changes to the original that I (flolilo) made:
+- Packed everything inside this one python file,
+- Changed the layout from horizontal to vertical,
+- Made it work with PIN-Numbers (so BCM won't work any more).
+
+(End of CREDIT:) '''
 # TODO: Closing it via Ctrl+C in sunsimulator.py doesn't work.
 #
 from tkinter import *
