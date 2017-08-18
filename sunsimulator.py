@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Lichtscript  v2.21 - By flolilo, 4.7.2017
+# Lichtscript  v2.21 - By flolilo, 18.8.2017
 #
 # import RPi.GPIO as GPIO  # for raspberry
 from EmulatorGUI_board import GPIO  # for PC
