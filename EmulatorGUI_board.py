@@ -1,4 +1,5 @@
 # CREDIT: Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/
+# TODO: Closing it via Ctrl+C in sunsimulator.py doesn't work.
 #
 from tkinter import *
 import tkinter as tk
