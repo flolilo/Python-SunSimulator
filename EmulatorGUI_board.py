@@ -1,4 +1,4 @@
-# Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/
+# CREDIT: Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/
 #
 from tkinter import *
 import tkinter as tk
