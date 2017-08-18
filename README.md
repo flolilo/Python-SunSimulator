@@ -25,4 +25,4 @@ You have been warned. ;-)
 -	`sudo apt-get install python-pip python-dev python3-pip python3-dev python-rpi.gpio python3-rpi.gpio`
 -	`sudo pip install pyephem`
 -	`sudo pip3 install pyephem`
--	At `/etc/rc.local` : add `"python3 /home/pi/script.py --mode "XYZ" &"` (`"XYZ"` = `"aquarium"` or `"outside"`)
+-	At `/etc/rc.local` : add `"python3 /home/pi/sunsimulator.py --mode "XYZ" &"` (`"XYZ"` = `"aquarium"` or `"outside"`)
