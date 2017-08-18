@@ -1,16 +1,16 @@
 #!/usr/bin/python3
-# Lichtscript  v2.21 - By flolilo, 18.8.2017
+# SunSimulator  v2.21 - By flolilo, 18.8.2017
 #
-# import RPi.GPIO as GPIO  # for raspberry
-from EmulatorGUI_board import GPIO  # for PC
-import time
-import datetime
-import ephem  # to get information about sunrise & sunset
-from random import randint  # for random dimming of the light in --mode "aquarium"
-import os  # for restart
-import signal  # for keyboard interrupts
-import sys  # for keyboard interrupts
-import argparse  # set variables via parameters
+import RPi.GPIO as GPIO  # For Raspberry Pi
+# from EmulatorGUI_board import GPIO  # For PC, import GPIO Emulator from EmulatorGUI_board.py
+import time  # For timeouts
+import datetime  # To get the current time
+import ephem  # To get information about sunrise & sunset
+from random import randint  # For random dimming of the light in --mode "aquarium"
+import os  # For rebooting
+import signal  # For keyboard interrupts
+import sys  # For keyboard interrupts
+import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("--mode", dest="mode", help="aquarium, outside", default="none")
 parser.add_argument("--log", dest="log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
@@ -25,7 +25,7 @@ if (args.log == 1):
 else:
     f = sys.stdout
 
-# DEFINITION: Specifying pinout for each application
+# DEFINITION: Specifying pinout for each application:
 if (args.mode == "outside"):
     print("Outside-mode was chosen for this execution.", file=f)
     ''' GPIO-PINOUT FOR OUTSIDE-MODE:
@@ -71,15 +71,12 @@ else:
     print("--mode not specified - exiting!", file=f)
     f.close()
     sys.exit(0)
-
-daytime_var = 4
-zufall = 0
-zufallstag = 0
-schleife = 0
-licht = 0
-override = 3
-uhr = 0
-regular_sleep_time = 30
+daytime_var = 4  # specifies in which mode the script currently is. TODO: replace it, as it is confusing.
+sensed_darkness = 0  # --mode outside only. Increasing value shows that sensor reports light-intensity below threshold.
+override = 3  # --mode outside only. If sensor does not work, this will decide light states via pyephem.
+bigben_done = 0  # --mode outside only. Specifies if lights_BigBen was already working.
+regular_sleep_time = 30  # time (in seconds) that the script idles between two iterations
+# DEFINITION: Values for function time_GetSet:
 now = 0
 now_hours_utc = 0
 now_minutes_utc = 0
@@ -90,7 +87,7 @@ sunset_total = 0
 dusk_total = 0
 now_total_utc = 0
 
-# DEFINITION: specify the time to reboot. Max-time is needed, otherwise endless reboots would occur.
+# DEFINITION: specify the time to reboot: (Max-time is needed, otherwise endless reboots would occur.)
 if (args.mode == "outside"):
     reboot_time_min = 65
     reboot_time_max = reboot_time_min + 5
@@ -98,18 +95,21 @@ else:
     reboot_time_min = 725
     reboot_time_max = reboot_time_min + 5
 
+# DEFINITION: --mode aquarium only. Prepare values for random dimming:
+random_i = 0
+random_day = 0
 random_time_min = 9999
 random_time_max = random_time_min + 5
 
 
 # DEFINITION: Switching on the lights:
-def lights_switchOn(erstpin, letztpin):
+def lights_switchOn(pin_first, pin_last):
     global f
     global args
     global daytime_var
     global pins
     if (args.mode == "outside"):
-        for k in range(erstpin, letztpin + 1):
+        for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lighton[k])
             time.sleep(0.3)
         print("It was dark for long enough time - Switching ON the lights.", file=f)
@@ -122,13 +122,13 @@ def lights_switchOn(erstpin, letztpin):
 
 
 # DEFINITION: Switching off the lights:
-def lights_switchOff(erstpin, letztpin):
+def lights_switchOff(pin_first, pin_last):
     global f
     global args
     global daytime_var
     global pins
     if (args.mode == "outside"):
-        for k in range(erstpin, letztpin + 1):
+        for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lightoff[k])
             time.sleep(0.3)
         print("It was bright for long enough time - Switching OFF the lights.", file=f)
@@ -141,7 +141,7 @@ def lights_switchOff(erstpin, letztpin):
 
 
 # DEFINITION: Dimming the lights: (only --mode "aquarium")
-def lights_dimming(erstpin, letztpin):
+def lights_dimming(pin_first, pin_last):
     global f
     global daytime_var
     global pins
@@ -152,14 +152,14 @@ def lights_dimming(erstpin, letztpin):
 
 
 # DEFINITION: Every quarter of the hour, show the time with flashing the lights: (only --mode "outside")
-def lights_BigBen(stunde, minute):
+def lights_BigBen(hour, minute):
     global f
     global daytime_var
     global pins
-    global uhr
+    global bigben_done
     lights_switchOff(1, 4)
     time.sleep(7)
-    for x in range(0, stunde, 1):
+    for x in range(0, hour, 1):
         print("Hour " + str(x), file=f)
         for k in range(1, 5):
             GPIO.output(pins[k], lighton[k])
@@ -180,7 +180,7 @@ def lights_BigBen(stunde, minute):
         y += 1
     time.sleep(7)
     lights_switchOn(1, 4)
-    uhr = 1
+    bigben_done = 1
 
 
 # DEFINITION: Getting the time, sunrise & sunset, setting variables accordingly:
@@ -272,16 +272,16 @@ def time_SetGet():
 # DEFINITION: Getting the values of the sensor:
 def sensor_readout():
     global f
-    global licht
+    global sensed_darkness
     global pins
     # Checking brightness, saving to variable
-    lichtsens = GPIO.input(pins[0])
-    if lichtsens == 1 and licht <= 3:
-        licht += 1
-        print("Darker. Light-Value is now: " + str(licht), file=f)
-    if lichtsens == 0 and licht >= 1:
-        licht -= 1
-        print("Brighter. Light-Value is now: " + str(licht), file=f)
+    sens = GPIO.input(pins[0])
+    if sens == 1 and sensed_darkness <= 3:
+        sensed_darkness += 1
+        print("Darker. Light-Value is now: " + str(sensed_darkness), file=f)
+    if sens == 0 and sensed_darkness >= 1:
+        sensed_darkness -= 1
+        print("Brighter. Light-Value is now: " + str(sensed_darkness), file=f)
 
 
 # DEFINITION: Preparing restart by cleaning up and closing:
@@ -316,13 +316,13 @@ signal.signal(signal.SIGINT, signal_handler)
 i = 0
 # DEFINITION: Loop for repetition of getting the current time:
 while True:
+    time_SetGet()
     if (args.mode == "outside"):
-        time_SetGet()
         sensor_readout()
         # If dark enough or late enough: switch light on, else: switch it off
-        if (licht >= 4 and daytime_var != 0 and override == 0 and i >= 4):
+        if (sensed_darkness >= 4 and daytime_var != 0 and override == 0 and i >= 4):
             lights_switchOn(1, 5)
-        if (licht <= 0 and daytime_var != 1 and override == 0 and i >= 4):
+        if (sensed_darkness <= 0 and daytime_var != 1 and override == 0 and i >= 4):
             lights_switchOff(1, 5)
         if (override == 1 and daytime_var != 0):
             lights_switchOn(1, 5)
@@ -344,23 +344,22 @@ while True:
                 override = 0
 
         # big-ben-style blinking:
-        if (daytime_var == 0 and uhr != 1):
+        if (daytime_var == 0 and bigben_done != 1):
             if (now_minutes_utc == 15 or now_minutes_utc == 30 or now_minutes_utc == 45):
                 lights_BigBen(now_hours, now_minutes_utc)
             if (now_minutes_utc == 0):
                 now_minutes_utc = 60
                 lights_BigBen(now_hours, now_minutes_utc)
 
-        if (uhr != 0 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
+        if (bigben_done != 0 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
                 31 <= now_minutes_utc <= 44 or 46 <= now_minutes_utc <= 59):
-            uhr = 0
+            bigben_done = 0
 
-        # end while-loop for restart:
+        # Break while-loop to reboot:
         if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
             break
 
     else:
-        time_SetGet()
         if (sunrise_total <= now_total_utc <= sunset_total and daytime_var != 1 and i >= 1):
             lights_switchOn(0, 2)
         # dimming the light
@@ -374,24 +373,24 @@ while True:
             lights_switchOff(0, 2)
 
         # dimming the light randomly
-        if (zufall == 0):
+        if (random_i == 0):
             random_time_min = randint(sunrise_total + 120, dusk_total - 120)
             random_time_max = random_time_min + 10
             print("Time to start the random dimming today: " + str(random_time_min), file=f)
-        if (zufallstag != 3 and zufall <= 1):
-            zufall += 1
-            zufallstag = randint(0, 6)
-            print("The day for running the random dimming is: " + str(zufallstag) + ". Randomised for the " +
-                  str(zufall) + ". time.", file=f)
-        if (random_time_min <= now_total_utc <= random_time_max and zufallstag == 3 and zufall != 5):
+        if (random_day != 3 and random_i <= 1):
+            random_i += 1
+            random_day = randint(0, 6)
+            print("The day for running the random dimming is: " + str(random_day) + ". Randomised for the " +
+                  str(random_i) + ". time.", file=f)
+        if (random_time_min <= now_total_utc <= random_time_max and random_day == 3 and random_i != 5):
             lights_dimming(0, 2)
             print("RANDOM DIMMING!", file=f)
             time.sleep(600)
             lights_switchOn(0, 2)
             print("Ending random dimming.", file=f)
-            zufall = 5
+            random_i = 5
 
-        # reboot
+        # Break while-loop to reboot:
         if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
             break
 
