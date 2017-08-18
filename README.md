@@ -28,4 +28,6 @@ You have been warned. ;-)
 -	At `/etc/rc.local` : add `"python3 /home/pi/sunsimulator.py --mode "XYZ" &"` (`"XYZ"` = `"aquarium"` or `"outside"`)
 
 ## To do
-- [ ] Making everything readable for the English-speaking community.
+- [x] Making everything readable for the English-speaking community.
+- [ ] Making the GPIO Emulator close properly
+- [ ] Replacing `daytime_var`
