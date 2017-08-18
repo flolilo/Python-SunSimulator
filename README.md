@@ -13,7 +13,7 @@ You have been warned. ;-)
 -   For trying it out on your computer: [Pi GPIO Emulator](https://sourceforge.net/projects/pi-gpio-emulator/) (This script brings with it its own version of this in form of `EmulatorGUI_board.py`.)
 
 ## Installation (from scratch)
-### This is just my way of setting things up - there are arguably better, faster, and/or safer ways to do that.
+#### This is just my way of setting things up - there are arguably better, faster, and/or safer ways to do that.
 -	Install [Raspbian Lite](https://www.raspberrypi.org/downloads/raspbian/) on your SD-card via e.g. [Rufus](https://rufus.akeo.ie/)
 -	Run Raspbian, `sudo raspi-config` set keyboard layout & time zone (UTC), set user PW
 -	[WLAN installation via wpa_supplicant](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md)
