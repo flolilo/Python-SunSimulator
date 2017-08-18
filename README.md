@@ -26,3 +26,6 @@ You have been warned. ;-)
 -	`sudo pip install pyephem`
 -	`sudo pip3 install pyephem`
 -	At `/etc/rc.local` : add `"python3 /home/pi/sunsimulator.py --mode "XYZ" &"` (`"XYZ"` = `"aquarium"` or `"outside"`)
+
+## To do
+- [ ] Making everything readable for the English-speaking community.
