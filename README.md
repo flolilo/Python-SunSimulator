@@ -27,6 +27,7 @@ You have been warned. ;-)
 -   [Download SunSimulator.py](https://github.com/flolilo/Python-SunSimulator/archive/master.zip) and extract it to e.g. `/home/pi/sunsimulator.py`
     - If you use SSH to get into your RasPi, you can also use this: `wget https://raw.githubusercontent.com/flolilo/Python-SunSimulator/master/sunsimulator.py && sudo chmod u+x sunsimulator.py`. This will simply download the latest sunsimulator.py-script to your user's folder.
 -	`sudo nano /etc/rc.local` : add `"python3 /home/pi/sunsimulator.py --mode XYZ &"` (`XYZ` = `aquarium` or `outside`)
+-   `ps -ef | grep python` should then show the script as running even after restarts.
 
 ## To do
 - [x] Making everything readable for the English-speaking community.
