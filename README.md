@@ -32,4 +32,4 @@ You have been warned. ;-)
 ## To do
 - [x] Making everything readable for the English-speaking community.
 - [ ] Making the GPIO Emulator close properly
-- [ ] Replacing `daytime_var`
+- [x] Replacing `daytime_var` -> *Now called `set_daytime` and is a string, so more readable.

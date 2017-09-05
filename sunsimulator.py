@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.21 - By flolilo, 18.8.2017
+# SunSimulator  v2.22 - By flolilo, 5.9.2017
 #
 import RPi.GPIO as GPIO  # For Raspberry Pi
 # from EmulatorGUI_board import GPIO  # For PC, import GPIO Emulator from EmulatorGUI_board.py
@@ -14,6 +14,7 @@ import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("--mode", dest="mode", help="aquarium, outside", default="none")
 parser.add_argument("--log", dest="log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
+parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
 args = parser.parse_args()
 
 # DEFINITION: Counting GPIO via Pins, deactivating warnings
@@ -71,11 +72,12 @@ else:
     print("--mode not specified - exiting!", file=f)
     f.close()
     sys.exit(0)
-daytime_var = 4  # specifies in which mode the script currently is. TODO: replace it, as it is confusing.
+
+set_daytime = "none"  # specifies in which mode the script currently is to prevent re-doing the same thing.
 sensed_darkness = 0  # --mode outside only. Increasing value shows that sensor reports light-intensity below threshold.
-override = 3  # --mode outside only. If sensor does not work, this will decide light states via pyephem.
+override = "off"  # --mode outside only. If sensor does not work, this will decide light states via pyephem.
 bigben_done = 0  # --mode outside only. Specifies if lights_BigBen was already working.
-regular_sleep_time = 30  # time (in seconds) that the script idles between two iterations
+regular_sleep_time = 20  # time (in seconds) that the script idles between two iterations
 # DEFINITION: Values for function time_GetSet:
 now = 0
 now_hours_utc = 0
@@ -106,55 +108,55 @@ random_time_max = random_time_min + 5
 def lights_switchOn(pin_first, pin_last):
     global f
     global args
-    global daytime_var
+    global set_daytime
     global pins
     if (args.mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lighton[k])
             time.sleep(0.3)
         print("It was dark for long enough time - Switching ON the lights.", file=f)
-        daytime_var = 0
+        set_daytime = "night"
     else:
         for k in range(len(pins)):
             GPIO.output(pins[k], lighton[k])
         print("It is day now - Light ON (True), Dimmer OFF (True).", file=f)
-        daytime_var = 1
+        set_daytime = "day"
 
 
 # DEFINITION: Switching off the lights:
 def lights_switchOff(pin_first, pin_last):
     global f
     global args
-    global daytime_var
+    global set_daytime
     global pins
     if (args.mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lightoff[k])
             time.sleep(0.3)
         print("It was bright for long enough time - Switching OFF the lights.", file=f)
-        daytime_var = 1
+        set_daytime = "day"
     else:
         for k in range(len(pins)):
             GPIO.output(pins[k], lightoff[k])
         print("It is night now - Light OFF (False), Dimmer OFF (True).", file=f)
-        daytime_var = 0
+        set_daytime = "night"
 
 
 # DEFINITION: Dimming the lights: (only --mode "aquarium")
 def lights_dimming(pin_first, pin_last):
     global f
-    global daytime_var
+    global set_daytime
     global pins
     for k in range(len(pins)):
         GPIO.output(pins[k], lightdim[k])
     print("Dimming the light, as the sun is setting - Light ON (True), Dimmer ON (False).", file=f)
-    daytime_var = 2
+    set_daytime = "evening"
 
 
 # DEFINITION: Every quarter of the hour, show the time with flashing the lights: (only --mode "outside")
 def lights_BigBen(hour, minute):
     global f
-    global daytime_var
+    global set_daytime
     global pins
     global bigben_done
     lights_switchOff(1, 4)
@@ -206,9 +208,9 @@ def time_SetGet():
     now_hours_PM = now_hours
     if (args.mode == "outside"):
         # for blinking: use AM-style times, make midnight to 12:00.
-        if now_hours == 0:
+        if (now_hours == 0):
             now_hours = 12
-        if now_hours >= 13:
+        elif (now_hours >= 13):
             now_hours -= 12
     # now_day = now.strftime("%A")
 
@@ -266,7 +268,7 @@ def time_SetGet():
         print("Sunrise: " + str(sunrise_hours) + ":" + str(sunrise_minutes) + " / " + str(sunrise_total) +
               ", Sunset: " + str(sunset_hours) + ":" + str(sunset_minutes) + " / " + str(sunset_total) +
               ", Dusk: " + str(dusk_hours) + ":" + str(dusk_minutes) + " / " + str(dusk_total), file=f)
-    print("Daytime-Variable = " + str(daytime_var), file=f)
+    print("Daytime-Variable = " + str(set_daytime), file=f)
 
 
 # DEFINITION: Getting the values of the sensor:
@@ -276,10 +278,10 @@ def sensor_readout():
     global pins
     # Checking brightness, saving to variable
     sens = GPIO.input(pins[0])
-    if sens == 1 and sensed_darkness <= 3:
+    if (sens == 1 and sensed_darkness <= 3):
         sensed_darkness += 1
         print("Darker. Light-Value is now: " + str(sensed_darkness), file=f)
-    if sens == 0 and sensed_darkness >= 1:
+    elif (sens == 0 and sensed_darkness >= 1):
         sensed_darkness -= 1
         print("Brighter. Light-Value is now: " + str(sensed_darkness), file=f)
 
@@ -320,38 +322,39 @@ while True:
     if (args.mode == "outside"):
         sensor_readout()
         # If dark enough or late enough: switch light on, else: switch it off
-        if (sensed_darkness >= 4 and daytime_var != 0 and override == 0 and i >= 4):
+        if (sensed_darkness >= 4 and set_daytime != "night" and override == "off" and i >= 4):
             lights_switchOn(1, 5)
-        if (sensed_darkness <= 0 and daytime_var != 1 and override == 0 and i >= 4):
+        elif (sensed_darkness <= 0 and set_daytime != "day" and override == "off" and i >= 4):
             lights_switchOff(1, 5)
-        if (override == 1 and daytime_var != 0):
+        elif (override == "night" and set_daytime != "night"):
             lights_switchOn(1, 5)
-        if (override == 2 and daytime_var != 1):
+        elif (override == "day" and set_daytime != "day"):
             lights_switchOff(1, 5)
 
         # overrides for different times:
-        if (3 <= now_hours_PM <= 13):
-            if override != 2:
-                print("It has to be day by now - Override is set to 2. \n", file=f)
-                override = 2
-        elif (sunset_total <= now_total_utc or now_total_utc <= sunrise_total):
-            if override != 1:
-                print("It has to be night by now - Override is set to 1. \n", file=f)
-                override = 1
-        else:
-            if override != 0:
-                print("It could be dark by now - Override is set to 0 (deactivated). \n", file=f)
-                override = 0
+        if (args.EnableOverride == 1):
+            if (3 <= now_hours_PM <= 13):
+                if (override != "day"):
+                    print("It has to be day by now - Override is set to 'day'. \n", file=f)
+                    override = "day"
+            elif (sunset_total <= now_total_utc or now_total_utc <= sunrise_total):
+                if (override != "night"):
+                    print("It has to be night by now - Override is set to 'night'. \n", file=f)
+                    override = "night"
+            else:
+                if (override != "off"):
+                    print("It could be dark by now - Override is set to 'off'. \n", file=f)
+                    override = "off"
 
         # big-ben-style blinking:
-        if (daytime_var == 0 and bigben_done != 1):
+        if (set_daytime == "night" and bigben_done == 0):
             if (now_minutes_utc == 15 or now_minutes_utc == 30 or now_minutes_utc == 45):
                 lights_BigBen(now_hours, now_minutes_utc)
-            if (now_minutes_utc == 0):
+            elif (now_minutes_utc == 0):
                 now_minutes_utc = 60
                 lights_BigBen(now_hours, now_minutes_utc)
 
-        if (bigben_done != 0 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
+        if (bigben_done == 1 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
                 31 <= now_minutes_utc <= 44 or 46 <= now_minutes_utc <= 59):
             bigben_done = 0
 
@@ -360,16 +363,16 @@ while True:
             break
 
     else:
-        if (sunrise_total <= now_total_utc <= sunset_total and daytime_var != 1 and i >= 1):
+        if (sunrise_total <= now_total_utc <= sunset_total and set_daytime != "day" and i >= 1):
             lights_switchOn(0, 2)
         # dimming the light
-        if (sunset_total <= now_total_utc <= dusk_total and daytime_var != 2 and i >= 1):
+        elif (sunset_total <= now_total_utc <= dusk_total and set_daytime != "evening" and i >= 1):
             lights_dimming(0, 2)
         # night before midnight
-        if (dusk_total <= now_total_utc and daytime_var != 0 and i >= 1):
+        elif (dusk_total <= now_total_utc and set_daytime != "night" and i >= 1):
             lights_switchOff(0, 2)
         # night after midnight
-        if (now_total_utc <= sunrise_total and daytime_var != 0 and i >= 1):
+        elif (now_total_utc <= sunrise_total and set_daytime != "night" and i >= 1):
             lights_switchOff(0, 2)
 
         # dimming the light randomly
