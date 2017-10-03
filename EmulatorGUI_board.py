@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# EmulatorGUI_board  v1.0 - 2017-09-05
 ''' (Start of CREDIT:)
 
 Modified version of vellarod's Pi GPIO Emulator: https://sourceforge.net/projects/pi-gpio-emulator/

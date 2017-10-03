@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.22 - By flolilo, 5.9.2017
+# SunSimulator  v2.22 - By flolilo, 2017-09-05
 #
 import RPi.GPIO as GPIO  # For Raspberry Pi
 # from EmulatorGUI_board import GPIO  # For PC, import GPIO Emulator from EmulatorGUI_board.py
