@@ -1,8 +1,10 @@
 #!/usr/bin/python3
-# SunSimulator  v2.22 - By flolilo, 2017-09-05
+# SunSimulator  v2.23 - By flolilo, 2017-09-05
 #
-import RPi.GPIO as GPIO  # For Raspberry Pi
-# from EmulatorGUI_board import GPIO  # For PC, import GPIO Emulator from EmulatorGUI_board.py
+try:
+    import RPi.GPIO as GPIO  # For Raspberry Pi
+except ImportError:
+    from EmulatorGUI_board import GPIO  # For PC, import GPIO Emulator from EmulatorGUI_board.py
 import time  # For timeouts
 import datetime  # To get the current time
 import ephem  # To get information about sunrise & sunset
