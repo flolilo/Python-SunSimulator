@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.23 - By flolilo, 2017-09-05
+# SunSimulator  v2.24 - By flolilo, 2017-09-05
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -14,22 +14,23 @@ import signal  # For keyboard interrupts
 import sys  # For keyboard interrupts
 import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
-parser.add_argument("--mode", dest="mode", help="aquarium, outside", default="none")
-parser.add_argument("--log", dest="log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
+parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
+parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
 parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
+parser.add_argument("--TestMode", dest="TestMode", help="0 = test-mode disabled, 1 = enabled.", type=int, default=0)
 args = parser.parse_args()
 
 # DEFINITION: Counting GPIO via Pins, deactivating warnings
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
-if (args.log == 1):
+if (args.Log == 1):
     f = open("./log.txt", mode='a')
 else:
     f = sys.stdout
 
 # DEFINITION: Specifying pinout for each application:
-if (args.mode == "outside"):
+if (args.Mode == "outside"):
     print("Outside-mode was chosen for this execution.", file=f)
     ''' GPIO-PINOUT FOR OUTSIDE-MODE:
     PIN -   Name        -   True-State
@@ -55,7 +56,7 @@ if (args.mode == "outside"):
             # activate GPIOs for relais
             GPIO.setup(pins[k], GPIO.OUT, initial=lightoff[k])
         time.sleep(0.1)
-elif (args.mode == "aquarium"):
+elif (args.Mode == "aquarium"):
     ''' GPIO-PINOUT FOR AQUARIUM-MODE:
     PIN -   Name        -   True-State
     13  -   Light       -   On
@@ -92,7 +93,7 @@ dusk_total = 0
 now_total_utc = 0
 
 # DEFINITION: specify the time to reboot: (Max-time is needed, otherwise endless reboots would occur.)
-if (args.mode == "outside"):
+if (args.Mode == "outside"):
     reboot_time_min = 65
     reboot_time_max = reboot_time_min + 5
 else:
@@ -112,7 +113,7 @@ def lights_switchOn(pin_first, pin_last):
     global args
     global set_daytime
     global pins
-    if (args.mode == "outside"):
+    if (args.Mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lighton[k])
             time.sleep(0.3)
@@ -131,7 +132,7 @@ def lights_switchOff(pin_first, pin_last):
     global args
     global set_daytime
     global pins
-    if (args.mode == "outside"):
+    if (args.Mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lightoff[k])
             time.sleep(0.3)
@@ -208,7 +209,7 @@ def time_SetGet():
     now_minutes_utc = time.gmtime(time.time())[4]
     now_hours = time.localtime(time.time())[3]
     now_hours_PM = now_hours
-    if (args.mode == "outside"):
+    if (args.Mode == "outside"):
         # for blinking: use AM-style times, make midnight to 12:00.
         if (now_hours == 0):
             now_hours = 12
@@ -226,7 +227,7 @@ def time_SetGet():
     sun_dusk = ephem.Observer()
     sun_dusk.elev = 0
     sun_dusk.date = now
-    if (args.mode == "outside"):
+    if (args.Mode == "outside"):
         sun_rise.lat = '48.2292'
         sun_rise.lon = '13.9362'
         sun_rise.horizon = '-9'
@@ -250,20 +251,20 @@ def time_SetGet():
     sunrise_minutes = sun_rise.next_rising(sun, use_center=True).tuple()[4]
     sunset_hours = sun_set.next_setting(sun, use_center=True).tuple()[3]
     sunset_minutes = sun_set.next_setting(sun, use_center=True).tuple()[4]
-    if (args.mode == "aquarium"):
+    if (args.Mode == "aquarium"):
         dusk_hours = sun_dusk.next_setting(sun, use_center=True).tuple()[3]
         dusk_minutes = sun_dusk.next_setting(sun, use_center=True).tuple()[4]
 
     # doing some maths to make calculations easier
     sunrise_total = sunrise_hours * 60 + sunrise_minutes
     sunset_total = sunset_hours * 60 + sunset_minutes
-    if (args.mode == "aquarium"):
+    if (args.Mode == "aquarium"):
         dusk_total = dusk_hours * 60 + dusk_minutes
     now_total_utc = now_hours_utc * 60 + now_minutes_utc
     print("\n" + str(now_hours_utc) + ":" + str(now_minutes_utc) + " (UTC) / " + str(now_hours_PM) +
           ":" + str(now_minutes_utc) + " (@AT) / " + str(now_total_utc) + " (Total UTC)", file=f)
 
-    if (args.mode == "outside"):
+    if (args.Mode == "outside"):
         print("Sunrise: " + str(sunrise_hours) + ":" + str(sunrise_minutes) + " / " + str(sunrise_total) +
               ", Sunset: " + str(sunset_hours) + ":" + str(sunset_minutes) + " / " + str(sunset_total), file=f)
     else:
@@ -321,83 +322,99 @@ i = 0
 # DEFINITION: Loop for repetition of getting the current time:
 while True:
     time_SetGet()
-    if (args.mode == "outside"):
-        sensor_readout()
-        # If dark enough or late enough: switch light on, else: switch it off
-        if (sensed_darkness >= 4 and set_daytime != "night" and override == "off" and i >= 4):
-            lights_switchOn(1, 5)
-        elif (sensed_darkness <= 0 and set_daytime != "day" and override == "off" and i >= 4):
-            lights_switchOff(1, 5)
-        elif (override == "night" and set_daytime != "night"):
-            lights_switchOn(1, 5)
-        elif (override == "day" and set_daytime != "day"):
-            lights_switchOff(1, 5)
+    if (args.Mode == "outside"):
+        if(args.TestMode == 1):
+            while(True):
+                lights_switchOn(1, 5)
+                time.sleep(5)
+                lights_switchOff(1, 5)
+                time.sleep(5)
+        else:
+            sensor_readout()
+            # If dark enough or late enough: switch light on, else: switch it off
+            if (sensed_darkness >= 4 and set_daytime != "night" and override == "off" and i >= 4):
+                lights_switchOn(1, 5)
+            elif (sensed_darkness <= 0 and set_daytime != "day" and override == "off" and i >= 4):
+                lights_switchOff(1, 5)
+            elif (override == "night" and set_daytime != "night"):
+                lights_switchOn(1, 5)
+            elif (override == "day" and set_daytime != "day"):
+                lights_switchOff(1, 5)
 
-        # overrides for different times:
-        if (args.EnableOverride == 1):
-            if (3 <= now_hours_PM <= 13):
-                if (override != "day"):
-                    print("It has to be day by now - Override is set to 'day'. \n", file=f)
-                    override = "day"
-            elif (sunset_total <= now_total_utc or now_total_utc <= sunrise_total):
-                if (override != "night"):
-                    print("It has to be night by now - Override is set to 'night'. \n", file=f)
-                    override = "night"
-            else:
-                if (override != "off"):
-                    print("It could be dark by now - Override is set to 'off'. \n", file=f)
-                    override = "off"
+            # overrides for different times:
+            if (args.EnableOverride == 1):
+                if (3 <= now_hours_PM <= 13):
+                    if (override != "day"):
+                        print("It has to be day by now - Override is set to 'day'. \n", file=f)
+                        override = "day"
+                elif (sunset_total <= now_total_utc or now_total_utc <= sunrise_total):
+                    if (override != "night"):
+                        print("It has to be night by now - Override is set to 'night'. \n", file=f)
+                        override = "night"
+                else:
+                    if (override != "off"):
+                        print("It could be dark by now - Override is set to 'off'. \n", file=f)
+                        override = "off"
 
-        # big-ben-style blinking:
-        if (set_daytime == "night" and bigben_done == 0):
-            if (now_minutes_utc == 15 or now_minutes_utc == 30 or now_minutes_utc == 45):
-                lights_BigBen(now_hours, now_minutes_utc)
-            elif (now_minutes_utc == 0):
-                now_minutes_utc = 60
-                lights_BigBen(now_hours, now_minutes_utc)
+            # big-ben-style blinking:
+            if (set_daytime == "night" and bigben_done == 0):
+                if (now_minutes_utc == 15 or now_minutes_utc == 30 or now_minutes_utc == 45):
+                    lights_BigBen(now_hours, now_minutes_utc)
+                elif (now_minutes_utc == 0):
+                    now_minutes_utc = 60
+                    lights_BigBen(now_hours, now_minutes_utc)
 
-        if (bigben_done == 1 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
-                31 <= now_minutes_utc <= 44 or 46 <= now_minutes_utc <= 59):
-            bigben_done = 0
+            if (bigben_done == 1 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
+                    31 <= now_minutes_utc <= 44 or 46 <= now_minutes_utc <= 59):
+                bigben_done = 0
 
-        # Break while-loop to reboot:
-        if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
-            break
+            # Break while-loop to reboot:
+            if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
+                break
 
     else:
-        if (sunrise_total <= now_total_utc <= sunset_total and set_daytime != "day" and i >= 1):
-            lights_switchOn(0, 2)
-        # dimming the light
-        elif (sunset_total <= now_total_utc <= dusk_total and set_daytime != "evening" and i >= 1):
-            lights_dimming(0, 2)
-        # night before midnight
-        elif (dusk_total <= now_total_utc and set_daytime != "night" and i >= 1):
-            lights_switchOff(0, 2)
-        # night after midnight
-        elif (now_total_utc <= sunrise_total and set_daytime != "night" and i >= 1):
-            lights_switchOff(0, 2)
+        if(args.TestMode == 1):
+            while(True):
+                lights_switchOn(0, 2)
+                time.sleep(5)
+                lights_dimming(0, 2)
+                time.sleep(5)
+                lights_switchOff(0, 2)
+                time.sleep(5)
+        else:
+            if (sunrise_total <= now_total_utc <= sunset_total and set_daytime != "day" and i >= 1):
+                lights_switchOn(0, 2)
+            # dimming the light
+            elif (sunset_total <= now_total_utc <= dusk_total and set_daytime != "evening" and i >= 1):
+                lights_dimming(0, 2)
+            # night before midnight
+            elif (dusk_total <= now_total_utc and set_daytime != "night" and i >= 1):
+                lights_switchOff(0, 2)
+            # night after midnight
+            elif (now_total_utc <= sunrise_total and set_daytime != "night" and i >= 1):
+                lights_switchOff(0, 2)
 
-        # dimming the light randomly
-        if (random_i == 0):
-            random_time_min = randint(sunrise_total + 120, dusk_total - 120)
-            random_time_max = random_time_min + 10
-            print("Time to start the random dimming today: " + str(random_time_min), file=f)
-        if (random_day != 3 and random_i <= 1):
-            random_i += 1
-            random_day = randint(0, 6)
-            print("The day for running the random dimming is: " + str(random_day) + ". Randomised for the " +
-                  str(random_i) + ". time.", file=f)
-        if (random_time_min <= now_total_utc <= random_time_max and random_day == 3 and random_i != 5):
-            lights_dimming(0, 2)
-            print("RANDOM DIMMING!", file=f)
-            time.sleep(600)
-            lights_switchOn(0, 2)
-            print("Ending random dimming.", file=f)
-            random_i = 5
+            # dimming the light randomly
+            if (random_i == 0):
+                random_time_min = randint(sunrise_total + 120, dusk_total - 120)
+                random_time_max = random_time_min + 10
+                print("Time to start the random dimming today: " + str(random_time_min), file=f)
+            if (random_day != 3 and random_i <= 1):
+                random_i += 1
+                random_day = randint(0, 6)
+                print("The day for running the random dimming is: " + str(random_day) + ". Randomised for the " +
+                    str(random_i) + ". time.", file=f)
+            if (random_time_min <= now_total_utc <= random_time_max and random_day == 3 and random_i != 5):
+                lights_dimming(0, 2)
+                print("RANDOM DIMMING!", file=f)
+                time.sleep(600)
+                lights_switchOn(0, 2)
+                print("Ending random dimming.", file=f)
+                random_i = 5
 
-        # Break while-loop to reboot:
-        if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
-            break
+            # Break while-loop to reboot:
+            if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
+                break
 
     i += 1
     time.sleep(regular_sleep_time)
