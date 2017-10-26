@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.24 - By flolilo, 2017-09-05
+# SunSimulator  v2.25 - By flolilo, 2017-09-05
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -18,6 +18,7 @@ parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="no
 parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
 parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
 parser.add_argument("--TestMode", dest="TestMode", help="0 = test-mode disabled, 1 = enabled.", type=int, default=0)
+parser.add_argument("--Restart", dest="Restart", help="Restart the device every 24 hours (noon).", type=int, default=1)
 args = parser.parse_args()
 
 # DEFINITION: Counting GPIO via Pins, deactivating warnings
@@ -369,7 +370,7 @@ while True:
                 bigben_done = 0
 
             # Break while-loop to reboot:
-            if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
+            if (args.Restart == 1 and reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
                 break
 
     else:
@@ -413,7 +414,7 @@ while True:
                 random_i = 5
 
             # Break while-loop to reboot:
-            if (reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
+            if (args.Restart == 1 and reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
                 break
 
     i += 1

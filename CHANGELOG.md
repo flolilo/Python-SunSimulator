@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 (The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).)
 
+## 2.25 - 2017-10-26
+### Added
+- As my WittyPi2 doesn't like reboots any longer, i added the parameter `--Restart` into the script so one can choose to reboot the device periodically (or never) from outside the script.
+
+
 ## 2.24 - 2017-10-25
 ### Changed
 - All parameters now start with upper case (`--Mode`,`--TestMode`,`--EnableOverride`,`--Log`).
