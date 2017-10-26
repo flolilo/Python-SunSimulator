@@ -20,13 +20,13 @@ You have been warned. ;-)
 -	[WLAN installation via wpa_supplicant](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md)
 -	`sudo apt-get update && sudo apt-get dist-upgrade`, if needed: `sudo apt autoremove`. Reboot.
 -	`sudo apt-get install rpi-update && sudo rpi-update`, `sudo pip3 install pip-review && sudo pip-review -a`. Reboot.
--	If you have one, install WittyPi. (It's a shield that adds a CMOS battery to keep time, as the raspberry can't do so).
+-	If you have one, install your [WittyPi2](http://www.uugear.com/product/wittypi2/). (It's a shield that adds a CMOS battery to keep time, as the raspberry can't do so).
 -	`sudo apt-get install python3 python3-doc python3-tk python3-venv python3.4-venv python3.4-doc binfmt-support`
 -	`sudo apt-get install python-pip python-dev python3-pip python3-dev python-rpi.gpio python3-rpi.gpio`
 -	`sudo pip install pyephem && sudo pip3 install pyephem`
--   [Download SunSimulator.py](https://github.com/flolilo/Python-SunSimulator/archive/master.zip) and extract it to e.g. `/home/pi/sunsimulator.py`
-    - If you use SSH to get into your RasPi, you can also use this: `wget https://raw.githubusercontent.com/flolilo/Python-SunSimulator/master/sunsimulator.py && sudo chmod u+x sunsimulator.py`. This will simply download the latest sunsimulator.py-script to your user's folder.
--	`sudo nano /etc/rc.local` : add `"python3 /home/pi/sunsimulator.py --Mode XYZ &"` (`XYZ` = `aquarium` or `outside`)
+-   [Download SunSimulator.py](https://github.com/flolilo/Python-SunSimulator/archive/master.zip) and extract it to e.g. `/home/pi/Python-SunSimulator/sunsimulator.py`
+    - If you use SSH to get into your RasPi, you can also use this: `sudo apt-get update && sudo apt-get install git && git clone https://github.com/flolilo/Python-SunSimulator.git -v`
+-	`sudo nano /etc/rc.local` : add `"python3 /home/pi/Python-SunSimulator/sunsimulator.py --Mode XYZ &"` (`XYZ` = `aquarium` or `outside`)
 -   `ps -ef | grep python` should then show the script as running even after restarts.
 
 ## To do
