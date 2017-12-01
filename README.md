@@ -10,7 +10,7 @@ You have been warned. ;-)
 -   A Raspberry Pi (any model will work, but without modification, the script will only work with those that have 40 GPIO pins)
 -   [PyEphem](http://rhodesmill.org/pyephem/)
 -   Any relais that will work with the RasPi's GPIO
-    -   `outside` is made for regular switching on/off, while `aquarium` will not only switch on/off, but dim - a description is supplied inside [`aquarium_diagram.PNG`](/files/aquarium_diagram.PNG)
+    -   `outside` is made for regular switching on/off, while `aquarium` will not only switch on/off, but dim - a description is supplied inside [`aquarium_diagram.PNG`](/files/aquarium_diagram.PNG) (the part inside the red box).
 -   For trying it out on your computer: [Pi GPIO Emulator](https://sourceforge.net/projects/pi-gpio-emulator/) (This script brings with it its own version of this in form of `EmulatorGUI_board.py`.)
     -   Pi GPIO Emulator has been marked under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/), which I hope to satisfy with my changes and credits.
 
