@@ -10,6 +10,7 @@ You have been warned. ;-)
 -   A Raspberry Pi (any model will work, but without modification, the script will only work with those that have 40 GPIO pins)
 -   [PyEphem](http://rhodesmill.org/pyephem/)
 -   Any relais that will work with the RasPi's GPIO
+    -   `outside` is made for regular switching on/off, while `aquarium` will not only switch on/off, but dim - a description is supplied inside [`aquarium_diagram.PNG`](.\files\aquarium_diagram.PNG)
 -   For trying it out on your computer: [Pi GPIO Emulator](https://sourceforge.net/projects/pi-gpio-emulator/) (This script brings with it its own version of this in form of `EmulatorGUI_board.py`.)
     -   Pi GPIO Emulator has been marked under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/), which I hope to satisfy with my changes and credits.
 
@@ -20,7 +21,7 @@ You have been warned. ;-)
 -	[WLAN installation via wpa_supplicant](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md)
 -	`sudo apt-get update && sudo apt-get dist-upgrade`, if needed: `sudo apt autoremove`. Reboot.
 -	`sudo apt-get install rpi-update && sudo rpi-update`, `sudo pip3 install pip-review && sudo pip-review -a`. Reboot.
--	If you have one, install your [WittyPi2](http://www.uugear.com/product/wittypi2/). (It's a shield that adds a CMOS battery to keep time, as the raspberry can't do so).
+-	If you have one, install your RTC.
 -	`sudo apt-get install python3 python3-doc python3-tk python3-venv python3.4-venv python3.4-doc binfmt-support`
 -	`sudo apt-get install python-pip python-dev python3-pip python3-dev python-rpi.gpio python3-rpi.gpio`
 -	`sudo pip install pyephem && sudo pip3 install pyephem`
