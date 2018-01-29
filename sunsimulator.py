@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.26 - By flolilo, 2017-12-01
+# SunSimulator  v2.27 - By flolilo, 2017-12-04
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -14,6 +14,8 @@ import signal  # For keyboard interrupts
 import sys  # For keyboard interrupts
 import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
+parser.add_argument("--Latitude", dest="Latitude", help="in decimal degrees, e.g. Paris is 48.8567", type=float, default="-180.0000")
+parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e.g. Paris is 2.3517", type=float, default="-360.0000")
 parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
 parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
 parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
@@ -29,6 +31,17 @@ if (args.Log == 1):
     f = open("./log.txt", mode='a')
 else:
     f = sys.stdout
+
+if (args.Latitude == -180.0000):
+    print("--Latitude not specified - exiting!", file=f)
+    f.close()
+    sys.exit(0)
+
+if (args.Longitude == -360.0000):
+    print("--Longitude not specified - exiting!", file=f)
+    f.close()
+    sys.exit(0)
+
 
 # DEFINITION: Specifying pinout for each application:
 if (args.Mode == "outside"):
@@ -228,19 +241,15 @@ def time_SetGet():
     sun_dusk = ephem.Observer()
     sun_dusk.elev = 0
     sun_dusk.date = now
+    sun_rise.lat = "{:.4f}".format(args.Latitude)
+    sun_rise.lon = "{:.4f}".format(args.Longitude)
+    sun_set.lat = sun_rise.lat
+    sun_set.lon = sun_rise.lon
     if (args.Mode == "outside"):
-        sun_rise.lat = '48.2292'
-        sun_rise.lon = '13.9362'
         sun_rise.horizon = '-9'
-        sun_set.lat = sun_rise.lat
-        sun_set.lon = sun_rise.lon
         sun_set.horizon = '-0.5'
     else:
-        sun_rise.lat = '48.2292'
-        sun_rise.lon = '13.9362'
         sun_rise.horizon = '18'
-        sun_set.lat = sun_rise.lat
-        sun_set.lon = sun_rise.lon
         sun_set.horizon = '-3'
         sun_dusk.lat = sun_rise.lat
         sun_dusk.lon = sun_rise.lon
