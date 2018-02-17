@@ -15,7 +15,7 @@ Changes to the original that I (flolilo) made:
 # TODO: Closing it via Ctrl+C in sunsimulator.py doesn't work.
 #
 import tkinter as tk
-from inspect import signature
+# TODO: what is it for? # from inspect import signature
 from functools import wraps
 import threading
 import time
@@ -47,12 +47,12 @@ def typeassert(*ty_args, **ty_kwargs):
             return func
 
         # Map function argument names to supplied types
-        sig = signature(func)
-        bound_types = sig.bind_partial(*ty_args, **ty_kwargs).arguments
+        # TODO: what is it for? # sig = signature(func)
+        # TODO: what is it for? # bound_types = sig.bind_partial(*ty_args, **ty_kwargs).arguments
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            bound_values = sig.bind(*args, **kwargs)
+            # TODO: what is it for? # bound_values = sig.bind(*args, **kwargs)
             # Enforce type assertions across supplied arguments
             '''for name, value in list(bound_values.arguments.items()):
                 if name in bound_types:
@@ -86,7 +86,7 @@ class App(threading.Thread):
         pin2label.grid(row=0, column=1, padx=(10, 10))
         # Pin 3 - GPIO 02
         pin03btn = tk.Button(text="Pin 3\nOUT=0", command="2", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin03btn.grid(row=1, column=0, padx=(10, 10), pady=(5, 5))
         dictionaryPinsTkinter["3"] = pin03btn
         # Pin 4 - 5V
@@ -94,7 +94,7 @@ class App(threading.Thread):
         pin4label.grid(row=1, column=1, padx=(10, 10))
         # Pin 5 - GPIO 03
         pin05btn = tk.Button(text="Pin 5\nOUT=0", command="3", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin05btn.grid(row=2, column=0, padx=(10, 10))
         dictionaryPinsTkinter["5"] = pin05btn
         # Pin 6 - GND
@@ -102,12 +102,12 @@ class App(threading.Thread):
         pin6label.grid(row=2, column=1, padx=(10, 10))
         # Pin 7 - GPIO 04
         pin07btn = tk.Button(text="Pin 7\nOUT=0", command="4", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin07btn.grid(row=3, column=0, padx=(10, 10))
         dictionaryPinsTkinter["7"] = pin07btn
         # Pin 8 - GPIO 14
         pin8btn = tk.Button(text="Pin 8\nOUT=0", command="8", padx="1px", pady="1px", bd="0px", fg="purple",
-                         relief="sunken", activeforeground="blue")
+                            relief="sunken", activeforeground="blue")
         pin8btn.grid(row=3, column=1, padx=(10, 10), pady=(5, 5))
         dictionaryPinsTkinter["8"] = pin8btn
         # Pin 9  - GND
@@ -115,22 +115,22 @@ class App(threading.Thread):
         pin09label.grid(row=4, column=0, padx=(10, 10))
         # Pin 10 - GPIO 15
         pin10btn = tk.Button(text="Pin 10\nOUT=0", command="10", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin10btn.grid(row=4, column=1, padx=(10, 10))
         dictionaryPinsTkinter["10"] = pin10btn
         # Pin 11 - GPIO 17
         pin11btn = tk.Button(text="Pin 11\nOUT=0", command="17", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin11btn.grid(row=5, column=0, padx=(10, 10))
         dictionaryPinsTkinter["11"] = pin11btn
         # Pin 12 - GPIO 18
         pin12btn = tk.Button(text="Pin 12\nOUT=0", command="12", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin12btn.grid(row=5, column=1, padx=(10, 10))
         dictionaryPinsTkinter["12"] = pin12btn
         # Pin 13 - GPIO 27
         pin13btn = tk.Button(text="Pin 13\nOUT=0", command="27", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin13btn.grid(row=6, column=0, padx=(10, 10))
         dictionaryPinsTkinter["13"] = pin13btn
         # Pin 14 - GND
@@ -138,12 +138,12 @@ class App(threading.Thread):
         pin14label.grid(row=6, column=1, padx=(10, 10))
         # Pin 15 - GPIO 22
         pin15btn = tk.Button(text="Pin 15\nOUT=0", command="22", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin15btn.grid(row=7, column=0, padx=(10, 10))
         dictionaryPinsTkinter["15"] = pin15btn
         # Pin 16 - GPIO 23
         pin16btn = tk.Button(text="Pin 16\nOUT=0", command="16", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin16btn.grid(row=7, column=1, padx=(10, 10))
         dictionaryPinsTkinter["16"] = pin16btn
         # Pin 17 - 3V3
@@ -151,12 +151,12 @@ class App(threading.Thread):
         pin17label.grid(row=8, column=0, padx=(10, 10))
         # Pin 18 - GPIO 24
         pin18btn = tk.Button(text="Pin 18\nOUT=0", command="18", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin18btn.grid(row=8, column=1, padx=(10, 10))
         dictionaryPinsTkinter["18"] = pin18btn
         # Pin 19 - GPIO 10
         pin19btn = tk.Button(text="Pin 19\nOUT=0", command="10", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin19btn.grid(row=9, column=0, padx=(10, 10))
         dictionaryPinsTkinter["19"] = pin19btn
         # Pin 20 - GND
@@ -164,22 +164,22 @@ class App(threading.Thread):
         pin20label.grid(row=9, column=1, padx=(10, 10))
         # Pin 21 - GPIO 09
         pin21btn = tk.Button(text="Pin 21\nOUT=0", command="9", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin21btn.grid(row=10, column=0, padx=(10, 10))
         dictionaryPinsTkinter["21"] = pin21btn
         # Pin 22 - GPIO 25
         pin22btn = tk.Button(text="Pin 22\nOUT=0", command="22", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin22btn.grid(row=10, column=1, padx=(10, 10))
         dictionaryPinsTkinter["22"] = pin22btn
         # Pin 23 - GPIO 11
         pin23btn = tk.Button(text="Pin 23\nOUT=0", command="11", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin23btn.grid(row=11, column=0, padx=(10, 10))
         dictionaryPinsTkinter["23"] = pin23btn
         # Pin 24 - GPIO 08
         pin24btn = tk.Button(text="Pin 24\nOUT=0", command="24", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin24btn.grid(row=11, column=1, padx=(10, 10))
         dictionaryPinsTkinter["24"] = pin24btn
         # Pin 25 - GND
@@ -187,7 +187,7 @@ class App(threading.Thread):
         pin25label.grid(row=12, column=0, padx=(10, 10))
         # Pin 26 - GPIO 07
         pin26btn = tk.Button(text="Pin 26\nOUT=0", command="26", padx="1px", pady="1px", bd="0px", fg="purple",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin26btn.grid(row=12, column=1, padx=(10, 10))
         dictionaryPinsTkinter["26"] = pin26btn
         # Pin 27 - ID_SD
@@ -198,7 +198,7 @@ class App(threading.Thread):
         pin28label.grid(row=13, column=1, padx=(10, 10))
         # Pin 29 - GPIO 05
         pin29btn = tk.Button(text="Pin29\nOUT=0", command="5", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin29btn.grid(row=14, column=0, padx=(10, 10))
         dictionaryPinsTkinter["29"] = pin29btn
         # Pin 30 - GND
@@ -206,17 +206,17 @@ class App(threading.Thread):
         pin30label.grid(row=14, column=1, padx=(10, 10))
         # Pin 31 - GPIO 06
         pin31btn = tk.Button(text="Pin 31\nOUT=0", command="6", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin31btn.grid(row=15, column=0, padx=(10, 10))
         dictionaryPinsTkinter["31"] = pin31btn
         # Pin 32 - GPIO 12
         pin32btn = tk.Button(text="Pin 32\nOUT=0", command="32", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin32btn.grid(row=15, column=1, padx=(10, 10))
         dictionaryPinsTkinter["32"] = pin32btn
         # Pin 33 - GPIO 13
         pin33btn = tk.Button(text="Pin 33\nOUT=0", command="13", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin33btn.grid(row=16, column=0, padx=(10, 10))
         dictionaryPinsTkinter["33"] = pin33btn
         # Pin 34 - GND
@@ -224,22 +224,22 @@ class App(threading.Thread):
         pin34label.grid(row=16, column=1, padx=(10, 10))
         # Pin 35 - GPIO 19
         pin35btn = tk.Button(text="Pin 35\nOUT=0", command="19", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin35btn.grid(row=17, column=0, padx=(10, 10))
         dictionaryPinsTkinter["35"] = pin35btn
         # Pin 36 - GPIO 16
         pin36btn = tk.Button(text="Pin 36\nOUT=0", command="36", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin36btn.grid(row=17, column=1, padx=(10, 10))
         dictionaryPinsTkinter["36"] = pin36btn
         # Pin 37 - GPIO 26
         pin37btn = tk.Button(text="Pin 37\nOUT=0", command="26", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin37btn.grid(row=18, column=0, padx=(10, 10))
         dictionaryPinsTkinter["37"] = pin37btn
         # Pin 38 - GPIO 20
         pin38btn = tk.Button(text="Pin 38\nOUT=0", command="38", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin38btn.grid(row=18, column=1, padx=(10, 10))
         dictionaryPinsTkinter["38"] = pin38btn
         # Pin 39 - GND
@@ -247,7 +247,7 @@ class App(threading.Thread):
         pin39label.grid(row=19, column=0, padx=(10, 10))
         # Pin 40 - GPIO 21
         pin40btn = tk.Button(text="Pin 40\nOUT=0", command="40", padx="1px", pady="1px", bd="0px", fg="blue",
-                          relief="sunken", activeforeground="blue")
+                             relief="sunken", activeforeground="blue")
         pin40btn.grid(row=19, column=1, padx=(10, 10))
         dictionaryPinsTkinter["40"] = pin40btn
         self.root.geometry('%dx%d+%d+%d' % (140, 720, 0, 0))

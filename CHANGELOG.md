@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 (The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).)
 
 
+## 2.27 - 2018-02-17
+### Changed
+- Minor PEP-8 changes according to flake8 in `sunsimulator.py` and `EmulatorGUI_board.py`.
+
+
 ## 2.26 - 2017-12-01
 ### Changed
 - `EmulatorGUI_board.py`: Properly import tkinter

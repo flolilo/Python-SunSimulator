@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.27 - By flolilo, 2017-12-04
+# SunSimulator  v2.27 - By flolilo, 2018-02-17
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -14,8 +14,10 @@ import signal  # For keyboard interrupts
 import sys  # For keyboard interrupts
 import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
-parser.add_argument("--Latitude", dest="Latitude", help="in decimal degrees, e.g. Paris is 48.8567", type=float, default="-180.0000")
-parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e.g. Paris is 2.3517", type=float, default="-360.0000")
+parser.add_argument("--Latitude", dest="Latitude", help="in decimal degrees, e.g. Paris is 48.8567",
+                    type=float, default="-180.0000")
+parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e.g. Paris is 2.3517",
+                    type=float, default="-360.0000")
 parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
 parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
 parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
@@ -271,17 +273,21 @@ def time_SetGet():
     if (args.Mode == "aquarium"):
         dusk_total = dusk_hours * 60 + dusk_minutes
     now_total_utc = now_hours_utc * 60 + now_minutes_utc
-    print("\n" + str(now_hours_utc).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (UTC) / " + str(now_hours_PM).zfill(2) +
-          ":" + str(now_minutes_utc).zfill(2) + " (@AT) / " + str(now_total_utc).zfill(4) + " (Total UTC)", file=f)
+    print("\n" + str(now_hours_utc).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (UTC) / " +
+          str(now_hours_PM).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@AT) / " + str(now_total_utc).zfill(4) +
+          " (Total UTC)", file=f)
 
     if (args.Mode == "outside"):
-        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " + str(sunrise_total).zfill(4) +
-              ", Sunset: " + str(sunset_hours).zfill(2) + ":" + str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4), file=f)
+        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " +
+              str(sunrise_total).zfill(4) + ", Sunset: " + str(sunset_hours).zfill(2) + ":" +
+              str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4), file=f)
     else:
-        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " + str(sunrise_total).zfill(4) +
-              ", Sunset: " + str(sunset_hours).zfill(2) + ":" + str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4) +
-              ", Dusk: " + str(dusk_hours).zfill(2) + ":" + str(dusk_minutes).zfill(2) + " / " + str(dusk_total).zfill(4), file=f)
+        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " +
+              str(sunrise_total).zfill(4) + ", Sunset: " + str(sunset_hours).zfill(2) + ":" +
+              str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4) + ", Dusk: " +
+              str(dusk_hours).zfill(2) + ":" + str(dusk_minutes).zfill(2) + " / " + str(dusk_total).zfill(4), file=f)
     print("Daytime-Variable = " + str(set_daytime), file=f)
+
 
 # DEFINITION: Getting the values of the sensor:
 def sensor_readout():
@@ -412,7 +418,7 @@ while True:
                 random_i += 1
                 random_day = randint(0, 6)
                 print("The day for running the random dimming is: " + str(random_day) + ". Randomised for the " +
-                    str(random_i) + ". time.", file=f)
+                      str(random_i) + ". time.", file=f)
             if (random_time_min <= now_total_utc <= random_time_max and random_day == 3 and random_i != 5):
                 lights_dimming(0, 2)
                 print("RANDOM DIMMING!", file=f)
