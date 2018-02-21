@@ -1,3 +1,6 @@
-✔ Making everything readable for the English-speaking community. @done (2018-1-29 13:51:40)
-☐ Making the GPIO Emulator close properly
-✔ Replacing `daytime_var` -> *Now called `set_daytime` and is a string, so more readable. @done (2018-1-29 13:51:29)
+To do in sunsimulator:
+    [x] Making everything readable for the English-speaking community. @done (2018-1-29 13:51:40)
+    [x] Replacing `daytime_var` -> *Now called `set_daytime` and is a string, so more readable. @done (2018-1-29 13:51:29)
+
+To do in GPIOemulator:
+    [ ] Making the GPIO Emulator close properly
