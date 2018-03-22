@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.27 - By flolilo, 2018-02-17
+# SunSimulator  v2.28 - By flolilo, 2018-03-22
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -273,19 +273,19 @@ def time_SetGet():
     if (args.Mode == "aquarium"):
         dusk_total = dusk_hours * 60 + dusk_minutes
     now_total_utc = now_hours_utc * 60 + now_minutes_utc
-    print("\n" + str(now_hours_utc).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (UTC) / " +
-          str(now_hours_PM).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@AT) / " + str(now_total_utc).zfill(4) +
-          " (Total UTC)", file=f)
+    print("\n" + str(now_hours_PM).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@Local) / " +
+          str(now_hours_utc).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@UTC) / " +
+          str(now_total_utc).zfill(4) + " (@Total UTC)", file=f)
 
     if (args.Mode == "outside"):
-        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " +
-              str(sunrise_total).zfill(4) + ", Sunset: " + str(sunset_hours).zfill(2) + ":" +
+        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " (@UTC) / " +
+              str(sunrise_total).zfill(4) + " (@Total UTC)\nSunset: " + str(sunset_hours).zfill(2) + ":" +
               str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4), file=f)
     else:
         print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " +
-              str(sunrise_total).zfill(4) + ", Sunset: " + str(sunset_hours).zfill(2) + ":" +
-              str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4) + ", Dusk: " +
-              str(dusk_hours).zfill(2) + ":" + str(dusk_minutes).zfill(2) + " / " + str(dusk_total).zfill(4), file=f)
+              str(sunrise_total).zfill(4) + "\nSunset: " + str(sunset_hours).zfill(2) + ":" +
+              str(sunset_minutes).zfill(2) + " (@UTC) / " + str(sunset_total).zfill(4) + " (@Total UTC)\nDusk: " +
+              str(dusk_hours).zfill(2) + ":" + str(dusk_minutes).zfill(2) + " (@UTC) / " + str(dusk_total).zfill(4) + " (@Total UTC)", file=f)
     print("Daytime-Variable = " + str(set_daytime), file=f)
 
 
