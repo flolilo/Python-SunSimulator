@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator  v2.28 - By flolilo, 2018-03-22
+# SunSimulator  v2.29 - By flolilo, 2018-03-31
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -19,7 +19,7 @@ parser.add_argument("--Latitude", dest="Latitude", help="in decimal degrees, e.g
 parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e.g. Paris is 2.3517",
                     type=float, default="-360.0000")
 parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
-parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
+parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = info in console, 2 = info in file.", type=int, default=1)
 parser.add_argument("--EnableOverride", dest="EnableOverride", help="Ignore light sensor (if N/A or malfunctioning). Only with --mode outside.", type=int, default=1)
 parser.add_argument("--TestMode", dest="TestMode", help="0 = test-mode disabled, 1 = enabled.", type=int, default=0)
 parser.add_argument("--Restart", dest="Restart", help="Restart the device every 24 hours (noon).", type=int, default=1)
@@ -29,10 +29,13 @@ args = parser.parse_args()
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
-if (args.Log == 1):
+if (args.Log == 2):
     f = open("./log.txt", mode='a')
-else:
+elif (args.Log == 1):
     f = sys.stdout
+else:
+    f = open(os.devnull, 'w')
+    sys.stdout = f
 
 if (args.Latitude == -180.0000):
     print("--Latitude not specified - exiting!", file=f)
