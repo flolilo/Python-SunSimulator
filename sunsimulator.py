@@ -20,7 +20,7 @@ parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e
                     type=float, default="-360.0000")
 parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
 parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = debug-info.", type=int, default=0)
-parser.add_argument("--EnableOverride", dest="EnableOverride", help="Only with --mode outside.", type=int, default=1)
+parser.add_argument("--EnableOverride", dest="EnableOverride", help="Ignore light sensor (if N/A or malfunctioning). Only with --mode outside.", type=int, default=1)
 parser.add_argument("--TestMode", dest="TestMode", help="0 = test-mode disabled, 1 = enabled.", type=int, default=0)
 parser.add_argument("--Restart", dest="Restart", help="Restart the device every 24 hours (noon).", type=int, default=1)
 args = parser.parse_args()
@@ -88,7 +88,7 @@ elif (args.Mode == "aquarium"):
         GPIO.setup(pins[k], GPIO.OUT, initial=lighton[k])
         time.sleep(0.1)
 else:
-    print("--mode not specified - exiting!", file=f)
+    print("--Mode not specified - exiting!", file=f)
     f.close()
     sys.exit(0)
 
