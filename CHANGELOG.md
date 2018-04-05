@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 (The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).)
 
+## 3.0 - 2018-04-05
+**Massive changes in code - this is BETA!**
+### Changed
+- Ephem now only runs at startup and every 15 minutes.
+- Script by default runs every 10 seconds.
+- Moved current & ephem times to `print_information()`.
+- Packed variables `now_total`, `now_hours` into list `now_local`.
+- Packed variables `now_total_utc`, `now_hours_utc`, `now_minutes_utc`, `now_minutes_utc` into list `now_utc`.
+- Packed variables `sunrise_total`, `sunset_total`, `dusk_total` into list `suntimes`.
+- Packed variables `sun`, `sun_set`, `sun_rise`, `sun_dusk` into list `ephem_objects`.
+- 24h-to-AM/PM conversion now takes place inside `lights_BigBen()`.
+- Splitted `time_SetGet()` into `time_ephem()` and `time_GetSet()`.
+
+
+### Added
+- `print_information()`: Function that prints current time and ephem times.
+- Pretty separations between different parts.
+- `--PollingTime`: User can now control polling time via parameter.
+    - Also automated getting the correct thresholds for polling ephem / allowing reboot. (Hopefully my math is correct...).
+-- Seconds to times
+- `time_GetSet()`.
+
 
 ## 2.30 - 2018-04-05
 ### Added

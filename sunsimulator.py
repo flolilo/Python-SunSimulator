@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SunSimulator v2.30 - By flolilo, 2018-04-05
+# SunSimulator v3.0 (BETA) - By flolilo, 2018-04-05
 #
 try:
     import RPi.GPIO as GPIO  # For Raspberry Pi
@@ -14,23 +14,36 @@ import signal  # For keyboard interrupts
 import sys  # For keyboard interrupts
 import argparse  # Set variables via parameters
 parser = argparse.ArgumentParser()
-parser.add_argument("--Latitude", dest="Latitude", help="in decimal degrees, e.g. Paris is 48.8567",
+parser.add_argument("--Latitude", dest="Latitude",
+                    help="in decimal degrees, e.g. Paris is 48.8567",
                     type=float, default="-180.0000")
-parser.add_argument("--Longitude", dest="Longitude", help="in decimal degrees, e.g. Paris is 2.3517",
+parser.add_argument("--Longitude", dest="Longitude",
+                    help="in decimal degrees, e.g. Paris is 2.3517",
                     type=float, default="-360.0000")
-parser.add_argument("--Mode", dest="Mode", help="aquarium, outside", default="none")
+parser.add_argument("--Mode", dest="Mode",
+                    help="aquarium, outside",
+                    default="none")
 parser.add_argument("--Log", dest="Log", help="0 = no debug-info, 1 = info in console, 2 = info in file.",
                     type=int, default=1)
-parser.add_argument("--EnableOverride", dest="EnableOverride", help="Ignore light sensor (if N/A or malfunctioning). Only with --mode outside.",
+parser.add_argument("--EnableOverride", dest="EnableOverride",
+                    help="Ignore light sensor (if N/A or malfunctioning). Only with --mode outside.",
                     type=int, default=1)
-parser.add_argument("--TestMode", dest="TestMode", help="0 = test-mode disabled, 1 = enabled.", type=int, default=0)
-parser.add_argument("--Restart", dest="Restart", help="Restart the device every 24 hours (noon).", type=int, default=1)
+parser.add_argument("--TestMode", dest="TestMode",
+                    help="0 = test-mode disabled, 1 = enabled.",
+                    type=int, default=0)
+parser.add_argument("--Restart", dest="Restart",
+                    help="Restart the device every 24 hours (noon).",
+                    type=int, default=1)
+parser.add_argument("--PollTime", dest="PollTime",
+                    help="Polling interval (in seconds).",
+                    type=int, default=10)
 args = parser.parse_args()
 
 # DEFINITION: Counting GPIO via Pins, deactivating warnings
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
+# DEFINITION: Set print location (none/terminal/file)
 if (args.Log == 2):
     f = open("./log.txt", mode='a')
 elif (args.Log == 1):
@@ -38,6 +51,16 @@ elif (args.Log == 1):
 else:
     f = open(os.devnull, 'w')
     sys.stdout = f
+
+print("\nSunSimulator v3.0 (BETA) - By flolilo, 2018-04-05", file=f)
+print("\nExplanation:", file=f)
+print("           Local   |   UTC    | UTC total", file=f)
+
+# ==================================================================================================
+# ==============================================================================
+#    Testing parameters, adding some variables:
+# ==============================================================================
+# ==================================================================================================
 
 if (args.Latitude == -180.0000):
     print("--Latitude not specified - exiting!", file=f)
@@ -48,7 +71,6 @@ if (args.Longitude == -360.0000):
     print("--Longitude not specified - exiting!", file=f)
     f.close()
     sys.exit(0)
-
 
 # DEFINITION: Specifying pinout for each application:
 if (args.Mode == "outside"):
@@ -97,18 +119,16 @@ else:
     f.close()
     sys.exit(0)
 
-set_daytime = "none"  # specifies in which mode the script currently is to prevent re-doing the same thing.
-regular_sleep_time = 20  # time (in seconds) that the script idles between two iterations
-# DEFINITION: Values for function time_GetSet:
-now = 0
-now_hours_utc = 0
-now_minutes_utc = 0
-now_hours = 0
-now_hours_PM = now_hours
-sunrise_total = 0
-sunset_total = 0
-dusk_total = 0
-now_total_utc = 0
+if(args.PollTime <= 0 or args.PollTime >= 3601):
+    print("--PollTime not between 1 and 3600 - exiting!", file=f)
+    f.close()
+    sys.exit(0)
+
+# ==================================================================================================
+# ==============================================================================
+#    Defining variables:
+# ==============================================================================
+# ==================================================================================================
 
 if (args.Mode == "outside"):
     reboot_time_min = 65  # Min time to reboot
@@ -123,7 +143,72 @@ else:
     random_time_min = 9999
     random_time_max = random_time_min + 5
 
+
+set_daytime = "none"  # specifies in which mode the script currently is to prevent re-doing the same thing.
+regular_sleep_time = args.PollTime  # time (in seconds) that the script idles between two iterations
+reboot_threshold = (86400 / 2) / regular_sleep_time  # restart after at least 12h
 reboot_time_max = reboot_time_min + 5  # Max time to reboot
+ephempoll_timer = (15 * 60) / regular_sleep_time  # poll ephem every 15min
+
+# DEFINITION: Values for function time_GetSet:
+now_utc = [0, 0, 0, 0]
+now_local = [0, 0, 0, 0]
+
+# DEFINITION: Values for function time_ephem:
+suntimes = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+# get ephem objects
+ephem_sunrise = ephem.Observer()
+ephem_sunset = ephem.Observer()
+ephem_dusk = ephem.Observer()
+ephem_sun = ephem.Sun()
+# set elevation of polled place (default: 0)
+# sun_rise.elev = 0
+# set longitude and latitude according to args
+ephem_sunrise.lat = "{:.4f}".format(args.Latitude)
+ephem_sunrise.lon = "{:.4f}".format(args.Longitude)
+ephem_sunset.lat = "{:.4f}".format(args.Latitude)
+ephem_sunset.lon = "{:.4f}".format(args.Longitude)
+# set definition of horizon (nautic/civil/...)
+if (args.Mode == "outside"):
+    ephem_sunrise.horizon = '-9'
+    ephem_sunset.horizon = '-0.5'
+else:
+    ephem_sunrise.horizon = '18'
+    ephem_sunset.horizon = '-3'
+    ephem_dusk.lat = "{:.4f}".format(args.Latitude)
+    ephem_dusk.lon = "{:.4f}".format(args.Longitude)
+    ephem_dusk.horizon = '-12'
+ephem_objects = [ephem_sun, ephem_sunrise, ephem_sunset, ephem_dusk]
+del ephem_sun
+del ephem_sunrise
+del ephem_sunset
+del ephem_dusk
+
+# ==================================================================================================
+# ==============================================================================
+#    Defining functions:
+# ==============================================================================
+# ==================================================================================================
+
+
+# DEFINITION: Print information about times and dates
+def print_information():
+    global now_utc
+    global now_local
+    global suntimes
+    global f
+
+    print("\nTime:     " + str(now_local[1]).zfill(2) + ":" + str(now_local[2]).zfill(2) + ":" +
+          str(now_local[3]).zfill(2) + " | " + str(now_utc[1]).zfill(2) + ":" +
+          str(now_utc[2]).zfill(2) + ":" + str(now_utc[3]).zfill(2) + " | " +
+          str(now_utc[0]).zfill(5), file=f)
+    print("Sunrise:           | " + str(suntimes[0][1]).zfill(2) + ":" + str(suntimes[0][2]).zfill(2) + ":" +
+          str(suntimes[0][3]).zfill(2) + " | " + str(suntimes[0][0]).zfill(5), file=f)
+    print("Sunset:            | " + str(suntimes[1][1]).zfill(2) + ":" + str(suntimes[1][2]).zfill(2) + ":" +
+          str(suntimes[1][3]).zfill(2) + " | " + str(suntimes[1][0]).zfill(4), file=f)
+    if (args.Mode == "aquarium"):
+        print("Dusk:              | " + str(suntimes[2][1]).zfill(2) + ":" + str(suntimes[2][2]).zfill(2) + ":" +
+              str(suntimes[2][3]).zfill(2) + " | " + str(suntimes[2][0]).zfill(5), file=f)
 
 
 # DEFINITION: Switching on the lights:
@@ -133,6 +218,7 @@ def lights_switchOn(pin_first, pin_last):
     global set_daytime
     global pins
 
+    print_information()
     if (args.Mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lighton[k])
@@ -153,6 +239,7 @@ def lights_switchOff(pin_first, pin_last):
     global set_daytime
     global pins
 
+    print_information()
     if (args.Mode == "outside"):
         for k in range(pin_first, pin_last + 1):
             GPIO.output(pins[k], lightoff[k])
@@ -166,26 +253,31 @@ def lights_switchOff(pin_first, pin_last):
         set_daytime = "night"
 
 
-# DEFINITION: Dimming the lights: (only --mode "aquarium")
+# DEFINITION: Dimming the lights: (only --Mode "aquarium")
 def lights_dimming(pin_first, pin_last):
     global f
     global set_daytime
     global pins
 
-    for k in range(len(pins)):
-        GPIO.output(pins[k], lightdim[k])
+    print_information()
     print("The sun is setting - Light ON (True), Dimmer ON (False).", file=f)
     set_daytime = "evening"
 
 
-# DEFINITION: Every quarter of the hour, show the time with flashing the lights: (only --mode "outside")
+# DEFINITION: Every quarter of the hour, show the time with flashing the lights: (only --Mode "outside")
 def lights_BigBen(hour, minute):
     global f
-    global set_daytime
     global pins
-    global bigben_done
     lights_switchOff(1, 4)
     time.sleep(7)
+
+    print_information()
+
+    # DEFINITION: Use AM-style times & make midnight to 12:00
+    if (hour == 0):
+        hour = 12
+    elif (hour >= 13):
+        hour -= 12
 
     for x in range(0, hour, 1):
         print("Hour " + str(x).zfill(2), file=f)
@@ -208,99 +300,52 @@ def lights_BigBen(hour, minute):
         y += 1
     time.sleep(7)
     lights_switchOn(1, 4)
-    bigben_done = 1
 
 
-# DEFINITION: Getting the time, sunrise & sunset, setting variables accordingly:
-def time_SetGet():
-    global f
+# DEFINITION: Getting the sunrise & sunset, setting variables accordingly:
+def time_Ephem():
     global args
-    global now
-    global now_hours_utc
-    global now_minutes_utc
-    global now_hours
-    global now_hours_PM
-    global sunrise_total
-    global sunset_total
-    global now_total_utc
-    global dusk_total
-    dusk_hours = 0
-    dusk_minutes = 0
-    # figure out what time it is now
-    now = datetime.datetime.now()
-    now_hours_utc = time.gmtime(time.time())[3]
-    now_minutes_utc = time.gmtime(time.time())[4]
-    now_hours = time.localtime(time.time())[3]
-    now_hours_PM = now_hours
+    global ephem_objects
+    global suntimes
 
-    if (args.Mode == "outside"):
-        # for blinking: use AM-style times, make midnight to 12:00.
-        if (now_hours == 0):
-            now_hours = 12
-        elif (now_hours >= 13):
-            now_hours -= 12
-
-    # DEFINITION: set up ephem:
-    # get ephem observer objects
-    sun_rise = ephem.Observer()
-    sun_set = ephem.Observer()
-    sun_dusk = ephem.Observer()
-    # create ephem sun object
-    sun = ephem.Sun()
-    # set elevation of sun that counts as rise/set and date to poll
-    sun_rise.elev = 0
-    sun_rise.date = now
-    sun_set.elev = 0
-    sun_set.date = now
-    sun_dusk.elev = 0
-    sun_dusk.date = now
-    # set longitude and latitude according to args
-    sun_rise.lat = "{:.4f}".format(args.Latitude)
-    sun_rise.lon = "{:.4f}".format(args.Longitude)
-    sun_set.lat = sun_rise.lat
-    sun_set.lon = sun_rise.lon
-    # set definition of horizon (nautic/civil/...)
-    if (args.Mode == "outside"):
-        sun_rise.horizon = '-9'
-        sun_set.horizon = '-0.5'
-    else:
-        sun_rise.horizon = '18'
-        sun_set.horizon = '-3'
-        sun_dusk.lat = sun_rise.lat
-        sun_dusk.lon = sun_rise.lon
-        sun_dusk.horizon = '-12'
+    # set polled date
+    now_ephem = datetime.datetime.now()
 
     # DEFINITION: Figure out sunrise, sunset, and dusk:
-    sunrise_hours = sun_rise.next_rising(sun, use_center=True).tuple()[3]
-    sunrise_minutes = sun_rise.next_rising(sun, use_center=True).tuple()[4]
-    sunset_hours = sun_set.next_setting(sun, use_center=True).tuple()[3]
-    sunset_minutes = sun_set.next_setting(sun, use_center=True).tuple()[4]
-    if (args.Mode == "aquarium"):
-        dusk_hours = sun_dusk.next_setting(sun, use_center=True).tuple()[3]
-        dusk_minutes = sun_dusk.next_setting(sun, use_center=True).tuple()[4]
+    ephem_objects[1].date = now_ephem
+    suntimes[0][1] = ephem_objects[1].next_rising(ephem_objects[0], use_center=True).tuple()[3]
+    suntimes[0][2] = ephem_objects[1].next_rising(ephem_objects[0], use_center=True).tuple()[4]
+    suntimes[0][3] = int(round(ephem_objects[1].next_rising(ephem_objects[0], use_center=True).tuple()[5]))
+    suntimes[0][0] = suntimes[0][1] * 3600 + suntimes[0][2] * 60 + suntimes[0][3]
 
-    # DEFINITION: Doing some maths to make calculations easier:
-    sunrise_total = sunrise_hours * 60 + sunrise_minutes
-    sunset_total = sunset_hours * 60 + sunset_minutes
+    ephem_objects[2].date = now_ephem
+    suntimes[1][1] = ephem_objects[2].next_setting(ephem_objects[0], use_center=True).tuple()[3]
+    suntimes[1][2] = ephem_objects[2].next_setting(ephem_objects[0], use_center=True).tuple()[4]
+    suntimes[1][3] = int(round(ephem_objects[2].next_setting(ephem_objects[0], use_center=True).tuple()[5]))
+    suntimes[1][0] = suntimes[1][1] * 3600 + suntimes[1][2] * 60 + suntimes[1][3]
     if (args.Mode == "aquarium"):
-        dusk_total = dusk_hours * 60 + dusk_minutes
-    now_total_utc = now_hours_utc * 60 + now_minutes_utc
+        ephem_objects[3].date = now_ephem
+        suntimes[2][1] = ephem_objects[3].next_setting(ephem_objects[0], use_center=True).tuple()[3]
+        suntimes[2][2] = ephem_objects[3].next_setting(ephem_objects[0], use_center=True).tuple()[4]
+        suntimes[2][3] = int(round(ephem_objects[3].next_setting(ephem_objects[0], use_center=True).tuple()[5]))
+        suntimes[2][0] = suntimes[2][1] * 3600 + suntimes[2][2] * 60 + suntimes[2][3]
 
-    # DEFINITION: Print information:
-    print("\n" + str(now_hours_PM).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@Local) / " +
-          str(now_hours_utc).zfill(2) + ":" + str(now_minutes_utc).zfill(2) + " (@UTC) / " +
-          str(now_total_utc).zfill(4) + " (@Total UTC)", file=f)
-    if (args.Mode == "outside"):
-        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " (@UTC) / " +
-              str(sunrise_total).zfill(4) + " (@Total UTC)\nSunset: " + str(sunset_hours).zfill(2) + ":" +
-              str(sunset_minutes).zfill(2) + " / " + str(sunset_total).zfill(4), file=f)
-    else:
-        print("Sunrise: " + str(sunrise_hours).zfill(2) + ":" + str(sunrise_minutes).zfill(2) + " / " +
-              str(sunrise_total).zfill(4) + "\nSunset: " + str(sunset_hours).zfill(2) + ":" +
-              str(sunset_minutes).zfill(2) + " (@UTC) / " + str(sunset_total).zfill(4) + " (@Total UTC)\nDusk: " +
-              str(dusk_hours).zfill(2) + ":" + str(dusk_minutes).zfill(2) + " (@UTC) / " + str(dusk_total).zfill(4) +
-              " (@Total UTC)", file=f)
-    print("Daytime-Variable = " + str(set_daytime), file=f)
+
+# DEFINITION: Getting the current time:
+def time_GetSet():
+    global f
+    global args
+    global now_utc
+    global now_local
+
+    now_utc[1] = time.gmtime(time.time())[3]
+    now_utc[2] = time.gmtime(time.time())[4]
+    now_utc[3] = int(round(time.gmtime(time.time())[5]))
+    now_utc[0] = now_utc[1] * 3600 + now_utc[2] * 60 + now_utc[3]
+    now_local[1] = time.localtime(time.time())[3]
+    now_local[2] = time.localtime(time.time())[4]
+    now_local[3] = int(round(time.localtime(time.time())[5]))
+    now_local[0] = now_local[1] * 3600 + now_local[2] * 60 + now_local[3]
 
 
 # DEFINITION: Getting the values of the sensor:
@@ -323,6 +368,8 @@ def sensor_readout():
 def prepare_restart():
     global f
     global pins
+
+    print_information()
 
     print("Preparing restart...", file=f)
     time.sleep(1)
@@ -348,13 +395,23 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 
+# ==================================================================================================
+# ==============================================================================
+#    Start everything:
+# ==============================================================================
+# ==================================================================================================
+
 signal.signal(signal.SIGINT, signal_handler)
 
-print("SunSimulator v2.30 - By flolilo, 2018-04-05", file=f)
 i = 0
 # DEFINITION: Loop for repetition of getting the current time:
 while True:
-    time_SetGet()
+    time_GetSet()
+    if(i % ephempoll_timer == 0):
+        time_Ephem()
+        print_information()
+        print("Daytime-Variable = " + str(set_daytime), file=f)
+
     if (args.Mode == "outside"):
         if(args.TestMode == 1):
             while(True):
@@ -364,6 +421,25 @@ while True:
                 time.sleep(5)
         else:
             sensor_readout()
+
+            # overrides for different times:
+            if (args.EnableOverride == 1):
+                if (9 <= now_local[1] <= 15):
+                    if (override != "day"):
+                        print_information()
+                        print("It must be day by now - Setting override to 'day'.", file=f)
+                        override = "day"
+                elif (suntimes[1][0] <= now_utc[0] or now_utc[0] <= suntimes[0][0]):
+                    if (override != "night"):
+                        print_information()
+                        print("It must be night by now - Setting override to 'night'.", file=f)
+                        override = "night"
+                else:
+                    if (override != "off"):
+                        print_information()
+                        print("It could be dark by now - Setting override to 'off'.", file=f)
+                        override = "off"
+
             # If dark enough or late enough: switch light on, else: switch it off
             if (sensed_darkness >= 4 and set_daytime != "night" and override == "off" and i >= 4):
                 lights_switchOn(1, 5)
@@ -374,37 +450,15 @@ while True:
             elif (override == "day" and set_daytime != "day"):
                 lights_switchOff(1, 5)
 
-            # overrides for different times:
-            if (args.EnableOverride == 1):
-                if (3 <= now_hours_PM <= 13):
-                    if (override != "day"):
-                        print("It must be day by now - Setting override to 'day'. \n", file=f)
-                        override = "day"
-                elif (sunset_total <= now_total_utc or now_total_utc <= sunrise_total):
-                    if (override != "night"):
-                        print("It must be night by now - Setting override to 'night'. \n", file=f)
-                        override = "night"
-                else:
-                    if (override != "off"):
-                        print("It could be dark by now - Setting override to 'off'. \n", file=f)
-                        override = "off"
-
             # big-ben-style blinking:
-            if (set_daytime == "night" and bigben_done == 0):
-                if (now_minutes_utc == 15 or now_minutes_utc == 30 or now_minutes_utc == 45):
-                    lights_BigBen(now_hours, now_minutes_utc)
-                elif (now_minutes_utc == 0):
-                    now_minutes_utc = 60
-                    lights_BigBen(now_hours, now_minutes_utc)
+            if (set_daytime == "night" and bigben_done == 0 and now_local[2] % 15 == 0):
+                if (now_local[2] == 0):
+                    now_local[2] = 60
+                lights_BigBen(now_local[1], now_local[2])
+                bigben_done = 1
 
-            if (bigben_done == 1 and 1 <= now_minutes_utc <= 14 or 16 <= now_minutes_utc <= 29 or
-                    31 <= now_minutes_utc <= 44 or 46 <= now_minutes_utc <= 59):
+            if (bigben_done == 1 and now_local[2] % 15 != 0):
                 bigben_done = 0
-
-            # Break while-loop to reboot:
-            if (args.Restart == 1 and reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
-                break
-
     else:
         if(args.TestMode == 1):
             while(True):
@@ -415,29 +469,29 @@ while True:
                 lights_switchOff(0, 2)
                 time.sleep(5)
         else:
-            if (sunrise_total <= now_total_utc <= sunset_total and set_daytime != "day" and i >= 1):
+            if (suntimes[0][0] <= now_utc[0] <= suntimes[1][0] and set_daytime != "day" and i >= 1):
                 lights_switchOn(0, 2)
             # dimming the light
-            elif (sunset_total <= now_total_utc <= dusk_total and set_daytime != "evening" and i >= 1):
+            elif (suntimes[1][0] <= now_utc[0] <= suntimes[2][0] and set_daytime != "evening" and i >= 1):
                 lights_dimming(0, 2)
             # night before midnight
-            elif (dusk_total <= now_total_utc and set_daytime != "night" and i >= 1):
+            elif (suntimes[2][0] <= now_utc[0] and set_daytime != "night" and i >= 1):
                 lights_switchOff(0, 2)
             # night after midnight
-            elif (now_total_utc <= sunrise_total and set_daytime != "night" and i >= 1):
+            elif (now_utc[0] <= suntimes[0][0] and set_daytime != "night" and i >= 1):
                 lights_switchOff(0, 2)
 
             # dimming the light randomly
             if (random_i == 0):
-                random_time_min = randint(sunrise_total + 120, dusk_total - 120)
+                random_time_min = randint(suntimes[0][0] + 120, suntimes[2][0] - 120)
                 random_time_max = random_time_min + 10
                 print("Time to start the random dimming today: " + str(random_time_min).zfill(4), file=f)
             if (random_day != 3 and random_i <= 1):
                 random_i += 1
-                random_day = randint(0, 6)
+                random_day = randint(0, 4)
                 print("The day for running the random dimming is: " + str(random_day) + ". Randomised for the " +
                       str(random_i) + ". time.", file=f)
-            if (random_time_min <= now_total_utc <= random_time_max and random_day == 3 and random_i != 5):
+            if (random_time_min <= now_local[0] <= random_time_max and random_day == 3 and random_i != 5):
                 lights_dimming(0, 2)
                 print("Starting random dimming.", file=f)
                 time.sleep(600)
@@ -445,9 +499,9 @@ while True:
                 print("Ending random dimming.", file=f)
                 random_i = 5
 
-            # Break while-loop to reboot:
-            if (args.Restart == 1 and reboot_time_min <= now_total_utc <= reboot_time_max and i >= 1440):
-                break
+    # Break while-loop to reboot:
+    if (args.Restart == 1 and reboot_time_min <= now_local[0] <= reboot_time_max and i >= reboot_threshold):
+        break
 
     i += 1
     time.sleep(regular_sleep_time)
