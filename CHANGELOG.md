@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 (The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).)
 
 
+## 2.30 - 2018-04-05
+### Added
+- Printing sort of a banner
+
+### Changed
+- Small changes in some prints (consistency, readability)
+- packed ephem-code together
+
+
 ## 2.29 - 2018-03-31
 ### Added
 - `--Log` now has 3 options: `0` for no output at all, `1` for console-only, and `2` for text-file only.
