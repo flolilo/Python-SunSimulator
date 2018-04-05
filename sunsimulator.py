@@ -45,7 +45,7 @@ GPIO.setwarnings(False)
 
 # DEFINITION: Set print location (none/terminal/file)
 if (args.Log == 2):
-    f = open("./log.txt", mode='a')
+    f = open("./LOG_sunsimulator.txt", mode='a')
 elif (args.Log == 1):
     f = sys.stdout
 else:
