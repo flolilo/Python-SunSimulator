@@ -53,8 +53,6 @@ else:
     sys.stdout = f
 
 print("\nSunSimulator v3.0 (BETA) - By flolilo, 2018-04-05", file=f)
-print("\nExplanation:", file=f)
-print("           Local   |   UTC    | UTC total", file=f)
 
 # ==================================================================================================
 # ==============================================================================
@@ -100,6 +98,7 @@ if (args.Mode == "outside"):
             GPIO.setup(pins[k], GPIO.OUT, initial=lightoff[k])
         time.sleep(0.1)
 elif (args.Mode == "aquarium"):
+    print("Aquarium-mode was chosen for this execution.", file=f)
     ''' GPIO-PINOUT FOR AQUARIUM-MODE:
     PIN -   Name        -   True-State
     13  -   Light       -   On
@@ -123,6 +122,9 @@ if(args.PollTime <= 0 or args.PollTime >= 3601):
     print("--PollTime not between 1 and 3600 - exiting!", file=f)
     f.close()
     sys.exit(0)
+
+print("\nExplanation:", file=f)
+print("           Local   |   UTC    | UTC total", file=f)
 
 # ==================================================================================================
 # ==============================================================================
