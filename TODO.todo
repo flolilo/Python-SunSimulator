@@ -1,6 +1,7 @@
 To do in sunsimulator:
-    [ ] Mode for christmas eve @low 
-    [ ] Mode for new year's eve @low 
+    [ ] Mode for christmas eve @low
+    [ ] Mode for new year's eve @low
+    [ ] Change from PyEphem to Skyfield
     [x] Making everything readable for the English-speaking community. @done (2018-1-29 13:51:40)
     [x] Replacing `daytime_var` -> *Now called `set_daytime` and is a string, so more readable. @done (2018-1-29 13:51:29)
     [ ] Testing restart-function
